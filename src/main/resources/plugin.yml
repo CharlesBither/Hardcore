@@ -1,0 +1,6 @@
+name: Hardcore
+version: '${project.version}'
+main: tech.secretgarden.hardcore.Hardcore
+api-version: 1.18
+authors: [ ChuckLingBao ]
+description: Defines rules for players in hardcore worlds
