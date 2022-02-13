@@ -6,7 +6,7 @@
 
     <groupId>tech.secretgarden</groupId>
     <artifactId>Hardcore</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Hardcore</name>
@@ -70,12 +70,6 @@
             <artifactId>spigot-api</artifactId>
             <version>1.18.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fatboyindustrial.gson-javatime-serialisers</groupId>
-            <artifactId>gson-javatime-serialisers</artifactId>
-            <version>1.1.1</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

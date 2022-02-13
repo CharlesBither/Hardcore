@@ -1,12 +1,8 @@
 package tech.secretgarden.hardcore;
 
-import com.fatboyindustrial.gsonjavatime.Converters;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,17 +10,13 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class EventListener implements Listener {
 
+    private final Data data = new Data();
     private final Hardcore plugin;
     public EventListener(Hardcore instance) {
         this.plugin = instance;
@@ -37,9 +29,9 @@ public class EventListener implements Listener {
         Player player = e.getPlayer();
         String uuid = player.getUniqueId().toString();
         if (e.getTo().getWorld().getName().equalsIgnoreCase("hardcore")) {
-            if (Hardcore.map.containsKey(uuid)) {
+            if (Hardcore.updatedMap.containsKey(uuid)) {
                 //uuid is in hashmap
-                for (Map.Entry<String, LocalDateTime> entry : Hardcore.map.entrySet()) {
+                for (Map.Entry<String, LocalDateTime> entry : Hardcore.updatedMap.entrySet()) {
 
                     if (entry.getKey().equals(uuid)) {
                         LocalDateTime now = LocalDateTime.now();
@@ -65,34 +57,19 @@ public class EventListener implements Listener {
                 }
             }
         }
-
     }
 
     @EventHandler
     private void death(PlayerDeathEvent e) {
         Player player = e.getEntity();
         if (player.getWorld().getName().equalsIgnoreCase("hardcore")) {
-            DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             String uuid = player.getUniqueId().toString();
             LocalDateTime time = LocalDateTime.now().plusHours(24);
-            String timeString = LocalDateTime.now().plusHours(24).format(dateFormat);
-            Hardcore.map.put(uuid, time);
-            try {
+            Hardcore.updatedMap.put(uuid, time);
 
-                File file = new File(plugin.getDataFolder(), "cooldown.json");
-                final Gson gson = new Gson();
-                Writer writer = new FileWriter(file, false);
-                for (Map.Entry<String, LocalDateTime> entry : Hardcore.map.entrySet()) {
-                    Hardcore.stringMap.put(entry.getKey(), timeString);
-                }
-                player.getInventory().clear();
-                gson.toJson(Hardcore.stringMap, writer);
-                writer.flush();
-                writer.close();
+            data.writeFile(plugin);
 
-            } catch (IOException x) {
-                x.printStackTrace();
-            }
+            player.getInventory().clear();
         }
     }
 
@@ -103,7 +80,7 @@ public class EventListener implements Listener {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 player.teleport(spawn);
                 System.out.println("teleporting");
-            } , 2);
+            } , 1);
         }
     }
 }
