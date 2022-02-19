@@ -10,13 +10,13 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 public class EventListener implements Listener {
 
-    private final Data data = new Data();
+    private final Database database = new Database();
     private final Hardcore plugin;
     public EventListener(Hardcore instance) {
         this.plugin = instance;
@@ -26,35 +26,34 @@ public class EventListener implements Listener {
 
     @EventHandler
     private void teleport(PlayerTeleportEvent e) {
+        LocalDateTime now = LocalDateTime.now();
         Player player = e.getPlayer();
         String uuid = player.getUniqueId().toString();
-        if (e.getTo().getWorld().getName().equalsIgnoreCase("hardcore")) {
-            if (Hardcore.updatedMap.containsKey(uuid)) {
-                //uuid is in hashmap
-                for (Map.Entry<String, LocalDateTime> entry : Hardcore.updatedMap.entrySet()) {
+        if (e.getTo().getWorld().getName().equalsIgnoreCase("hardcore") ||
+                e.getTo().getWorld().getName().equalsIgnoreCase("hardcore_nether") ||
+                e.getTo().getWorld().getName().equalsIgnoreCase("hardcore_the_end")) {
 
-                    if (entry.getKey().equals(uuid)) {
-                        LocalDateTime now = LocalDateTime.now();
-                        LocalDateTime end = entry.getValue();
-
-                        if (entry.getValue().isAfter(LocalDateTime.now())) {
-                            Duration duration = Duration.between(now, end);
-                            int hours = duration.toHoursPart();
-                            int minutes = duration.toMinutesPart();
-                            int seconds = duration.toSecondsPart();
-
-                            String hoursString = Integer.toString(hours);
-                            String minutesString = Integer.toString(minutes);
-                            String secondsString = Integer.toString(seconds);
-
-                            e.setCancelled(true);
-                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must wait " +
-                                    hoursString + " hours, " +
-                                    minutesString + " minutes, " +
-                                    secondsString + " seconds before entering again!");
-                        }
+            try (Connection connection = database.getPool().getConnection();
+                PreparedStatement statement = connection.prepareStatement("SELECT timestamp FROM cooldown WHERE uuid = ?")) {
+                statement.setString(1, uuid);
+                ResultSet rs = statement.executeQuery();
+                while (rs.next()) {
+                    Timestamp result = rs.getTimestamp("timestamp");
+                    LocalDateTime end = result.toLocalDateTime();
+                    if (end.isAfter(now)) {
+                        e.setCancelled(true);
+                        Duration duration = Duration.between(now, end);
+                        String hour = Integer.toString(duration.toHoursPart());
+                        String minute = Integer.toString(duration.toMinutesPart());
+                        String second = Integer.toString(duration.toSecondsPart());
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must wait " +
+                                hour + " hours, " +
+                                minute + " minutes, " +
+                                second + " seconds before entering again!");
                     }
                 }
+            } catch (SQLException x) {
+                x.printStackTrace();
             }
         }
     }
@@ -62,13 +61,21 @@ public class EventListener implements Listener {
     @EventHandler
     private void death(PlayerDeathEvent e) {
         Player player = e.getEntity();
-        if (player.getWorld().getName().equalsIgnoreCase("hardcore")) {
+        if (player.getWorld().getName().equalsIgnoreCase("hardcore") ||
+                player.getWorld().getName().equalsIgnoreCase("hardcore_nether") ||
+                player.getWorld().getName().equalsIgnoreCase("hardcore_the_end")) {
             String uuid = player.getUniqueId().toString();
             LocalDateTime time = LocalDateTime.now().plusHours(24);
-            Hardcore.updatedMap.put(uuid, time);
+            Timestamp timestamp = Timestamp.valueOf(time);
 
-            data.writeFile(plugin);
-
+            try (Connection connection = database.getPool().getConnection();
+                 PreparedStatement statement = connection.prepareStatement("INSERT INTO cooldown (uuid, timestamp) VALUES (?, ?);")) {
+                statement.setString(1, uuid);
+                statement.setTimestamp(2, timestamp);
+                statement.executeUpdate();
+            } catch (SQLException x) {
+                x.printStackTrace();
+            }
             player.getInventory().clear();
         }
     }
@@ -76,7 +83,9 @@ public class EventListener implements Listener {
     @EventHandler
     private void respawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
-        if (player.getWorld().getName().equalsIgnoreCase("hardcore")) {
+        if (player.getWorld().getName().equalsIgnoreCase("hardcore") ||
+                player.getWorld().getName().equalsIgnoreCase("hardcore_nether") ||
+                player.getWorld().getName().equalsIgnoreCase("hardcore_the_end")) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 player.teleport(spawn);
                 System.out.println("teleporting");
