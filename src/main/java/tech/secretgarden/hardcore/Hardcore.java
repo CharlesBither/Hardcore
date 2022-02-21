@@ -1,7 +1,9 @@
 package tech.secretgarden.hardcore;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ public class Hardcore extends JavaPlugin {
     public void onEnable() {
         System.out.println("Hardcore has loaded");
         Bukkit.getPluginManager().registerEvents(new EventListener(this), this);
+        getCommand("hardhome").setExecutor(new HardHomeCommand());
 
         getConfig().options().copyDefaults();
         saveDefaultConfig();
@@ -36,6 +39,21 @@ public class Hardcore extends JavaPlugin {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            try (Connection connection = database.getPool().getConnection();
+                  PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS home (" +
+                          "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                          "uuid VARCHAR(36), " +
+                          "x INT, " +
+                          "y INT, " +
+                          "z INT, " +
+                          "world VARCHAR(20));")) {
+                statement.executeUpdate();
+
+            } catch (SQLException x) {
+                x.printStackTrace();
+            }
+
             try (Connection connection = database.getPool().getConnection();
                  PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS cooldown (" +
                          "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
@@ -60,6 +78,8 @@ public class Hardcore extends JavaPlugin {
             } catch (SQLException x) {
                 x.printStackTrace();
             }
+            //Pings db every 60 seconds to prevent loss of communication
+            ping.runTaskTimer(this, 20, 20 * 60);
         }
         System.out.println("Connected to database = " + Database.isConnected());
     }
@@ -70,4 +90,16 @@ public class Hardcore extends JavaPlugin {
         System.out.println("Hardcore shutting down");
         Database.disconnect();
     }
+
+    BukkitRunnable ping = new BukkitRunnable() {
+        @Override
+        public void run() {
+            try (Connection connection = database.getPool().getConnection();
+                 PreparedStatement statement = connection.prepareStatement("SELECT 1;")) {
+                statement.executeQuery();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 }

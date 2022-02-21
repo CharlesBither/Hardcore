@@ -4,3 +4,6 @@ main: tech.secretgarden.hardcore.Hardcore
 api-version: 1.18
 authors: [ ChuckLingBao ]
 description: Defines rules for players in hardcore worlds
+commands:
+  hardhome:
+    description: Control your Hardcore home
