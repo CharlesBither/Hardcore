@@ -23,30 +23,30 @@ public class HardHomeCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             String uuid = player.getUniqueId().toString();
-            World hardcore = Bukkit.getWorld("hardcore");
-            if (args.length == 0) {
-                try (Connection connection = database.getPool().getConnection();
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM home WHERE uuid = ?")) {
-                    statement.setString(1, uuid);
-                    ResultSet rs = statement.executeQuery();
-                    if (rs.next()) {
-                        int x = rs.getInt("x");
-                        int y = rs.getInt("y");
-                        int z = rs.getInt("z");
-                        Location home = new Location(hardcore, x, y, z);
-                        player.teleport(home);
-                    } else {
-                        player.sendMessage(ChatColor.YELLOW + "You do not have a home. Set one with /hardhome set");
+            World hardcore = Bukkit.getWorld("Hardcore");
+            if (args.length == 1) {
+                if (args[0].equalsIgnoreCase("home")) {
+                    try (Connection connection = database.getPool().getConnection();
+                         PreparedStatement statement = connection.prepareStatement("SELECT * FROM home WHERE uuid = ?")) {
+                        statement.setString(1, uuid);
+                        ResultSet rs = statement.executeQuery();
+                        if (rs.next()) {
+                            int x = rs.getInt("x");
+                            int y = rs.getInt("y");
+                            int z = rs.getInt("z");
+                            Location home = new Location(hardcore, x, y, z);
+                            player.teleport(home);
+                        } else {
+                            player.sendMessage(ChatColor.YELLOW + "You do not have a home. Set one with /hc sethome");
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                } catch (SQLException e) {
-                    e.printStackTrace();
                 }
-
-            } else if (args.length == 1) {
-                if (args[0].equalsIgnoreCase("set")) {
+                if (args[0].equalsIgnoreCase("sethome")) {
                     //Setting home location
-                    if (player.getWorld().getName().equalsIgnoreCase("hardcore")) {
-                        String worldName = "hardcore";
+                    if (player.getWorld().getName().equalsIgnoreCase("Hardcore")) {
+                        String worldName = "Hardcore";
                         Location location = player.getLocation();
                         int x = location.getBlockX();
                         int y = location.getBlockY();
@@ -70,7 +70,7 @@ public class HardHomeCommand implements CommandExecutor {
                             statement.setInt(4, z);
                             statement.setString(5, worldName);
                             statement.executeUpdate();
-                            player.sendMessage(ChatColor.GREEN + "Success!");
+                            player.sendMessage(ChatColor.GREEN + "Successfully added home!");
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }

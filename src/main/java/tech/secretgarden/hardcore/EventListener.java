@@ -76,7 +76,8 @@ public class EventListener implements Listener {
             } catch (SQLException x) {
                 x.printStackTrace();
             }
-            player.getInventory().clear();
+            //e.getDrops().clear();
+            //player.getInventory().clear();
         }
     }
 
@@ -88,7 +89,6 @@ public class EventListener implements Listener {
                 player.getWorld().getName().equalsIgnoreCase("hardcore_the_end")) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 player.teleport(spawn);
-                System.out.println("teleporting");
             } , 1);
         }
     }

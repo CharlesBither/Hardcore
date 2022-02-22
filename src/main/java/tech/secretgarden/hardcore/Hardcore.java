@@ -1,7 +1,6 @@
 package tech.secretgarden.hardcore;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -27,7 +26,7 @@ public class Hardcore extends JavaPlugin {
     public void onEnable() {
         System.out.println("Hardcore has loaded");
         Bukkit.getPluginManager().registerEvents(new EventListener(this), this);
-        getCommand("hardhome").setExecutor(new HardHomeCommand());
+        getCommand("hc").setExecutor(new HardHomeCommand());
 
         getConfig().options().copyDefaults();
         saveDefaultConfig();
@@ -81,14 +80,14 @@ public class Hardcore extends JavaPlugin {
             //Pings db every 60 seconds to prevent loss of communication
             ping.runTaskTimer(this, 20, 20 * 60);
         }
-        System.out.println("Connected to database = " + Database.isConnected());
+        System.out.println("Connected to database = " + database.isConnected());
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
         System.out.println("Hardcore shutting down");
-        Database.disconnect();
+        database.disconnect();
     }
 
     BukkitRunnable ping = new BukkitRunnable() {

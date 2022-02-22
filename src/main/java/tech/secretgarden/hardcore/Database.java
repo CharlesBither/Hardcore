@@ -7,13 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class Database {
-    /*
-private final String HOST = "";
-private final int PORT = 3306;
-private final String DATABASE = "";
-private final String USERNAME = "";
-private final String PASSWORD = "";
- */
 
     static ArrayList<String> list = Hardcore.configList;
     public static ComboPooledDataSource pool;
@@ -31,7 +24,7 @@ private final String PASSWORD = "";
         }
     }
 
-    public static boolean isConnected() {
+    public boolean isConnected() {
         return pool != null;
     }
 
@@ -39,7 +32,7 @@ private final String PASSWORD = "";
         return pool;
     }
 
-    public static void disconnect() {
+    public void disconnect() {
         if (isConnected()) {
             pool.close();
         }
