@@ -6,7 +6,7 @@
 
     <groupId>tech.secretgarden</groupId>
     <artifactId>Hardcore</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <packaging>jar</packaging>
 
     <name>Hardcore</name>

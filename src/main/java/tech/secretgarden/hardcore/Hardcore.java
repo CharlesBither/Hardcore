@@ -78,7 +78,7 @@ public class Hardcore extends JavaPlugin {
                 x.printStackTrace();
             }
             //Pings db every 60 seconds to prevent loss of communication
-            ping.runTaskTimer(this, 20, 20 * 60);
+            //ping.runTaskTimer(this, 20, 20 * 60);
         }
         System.out.println("Connected to database = " + database.isConnected());
     }
